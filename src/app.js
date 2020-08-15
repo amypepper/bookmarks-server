@@ -5,7 +5,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { NODE_ENV } = require("./config");
 const { v4: uuid } = require("uuid");
-
+const BookmarksService = require("./bookmarks-service");
+const jsonParser = express.json();
 const app = express();
 
 //////////////////  SAMPLE DATA //////////////////
@@ -79,8 +80,18 @@ app.use(function errorHandler(error, req, res, next) {
 });
 
 ///////////////////// ROUTE HANDLERS /////////////////////
-app.get("/bookmarks", (req, res) => {
-  res.json(bookmarks);
+app.get("/bookmarks", (req, res, next) => {
+  const knexInstance = req.app.get("db");
+
+  BookmarksService.getAllBookmarks(knexInstance)
+    .then((bookmarks) => {
+      res.json(bookmarks);
+    })
+    .catch(next);
+});
+
+app.get("/", (req, res) => {
+  res.send("Welcome!");
 });
 
 app.get("/bookmarks/:id", (req, res) => {
@@ -95,38 +106,54 @@ app.get("/bookmarks/:id", (req, res) => {
   res.json(bookmark);
 });
 
-app.post("/bookmarks", (req, res) => {
+// app.post("/bookmarks", (req, res) => {
+//   const { description, rating, title, url } = req.body;
+
+//   if (!rating || rating > 5 || rating < 1) {
+//     logger.error("A rating between 1 and 5 is required");
+//     return res.status(400).send("Invalid data");
+//   }
+//   if (!title) {
+//     logger.error("Title is required");
+//     return res.status(400).send("Invalid data");
+//   }
+//   if (!url) {
+//     logger.error("URL is required");
+//     return res.status(400).send("Invalid data");
+//   } else {
+//     const id = uuid();
+
+//     const newBookmark = {
+//       description,
+//       id,
+//       rating,
+//       title,
+//       url,
+//     };
+//     bookmarks.push(newBookmark);
+
+//     logger.info(`Card with id ${id} created`);
+//     res
+//       .status(201)
+//       .location(`http://localhost:8000/bookmarks/${id}`)
+//       .json(newBookmark);
+//   }
+// });
+
+app.post("/bookmarks", jsonParser, (req, res, next) => {
   const { description, rating, title, url } = req.body;
-
-  if (!rating || rating > 5 || rating < 1) {
-    logger.error("A rating between 1 and 5 is required");
-    return res.status(400).send("Invalid data");
-  }
-  if (!title) {
-    logger.error("Title is required");
-    return res.status(400).send("Invalid data");
-  }
-  if (!url) {
-    logger.error("URL is required");
-    return res.status(400).send("Invalid data");
-  } else {
-    const id = uuid();
-
-    const newBookmark = {
-      description,
-      id,
-      rating,
-      title,
-      url,
-    };
-    bookmarks.push(newBookmark);
-
-    logger.info(`Card with id ${id} created`);
-    res
-      .status(201)
-      .location(`http://localhost:8000/bookmarks/${id}`)
-      .json(newBookmark);
-  }
+  const newBookmark = {
+    description,
+    id,
+    rating,
+    title,
+    url,
+  };
+  BookmarksService.insertBookmark(req.app.get("db"), newBookmark)
+    .then((article) => {
+      res.status(201).json(article);
+    })
+    .catch(next);
 });
 
 app.delete("/bookmarks/:id", (req, res) => {
