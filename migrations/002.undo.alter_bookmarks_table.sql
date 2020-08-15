@@ -1,0 +1,1 @@
+ALTER TABLE bookmarks_table DROP COLUMN IF EXISTS;
