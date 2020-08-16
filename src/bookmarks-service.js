@@ -1,17 +1,23 @@
 const db = require("./server");
 
 const BookmarksService = {
-  getAllBookmarks(db) {
-    return db.select("*").from("bookmarks_table");
+  getAllBookmarks(knex) {
+    return knex.select("*").from("bookmarks_table");
   },
-  insertBookmark(db, newBookmark) {
-    return db
+  insertBookmark(knex, newBookmark) {
+    return knex
       .insert(newBookmark)
       .into("bookmarks_table")
       .returning("*")
       .then((rows) => {
         return rows[0];
       });
+  },
+  getById(knex, id) {
+    return knex.from("bookmarks_table").select("*").where("id", id).first();
+  },
+  deleteBookmark(knex, id) {
+    return knex("bookmarks_table").where({ id }).delete();
   },
 };
 
