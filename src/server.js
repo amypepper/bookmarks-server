@@ -9,6 +9,7 @@ const db = knex({
 });
 
 // setting it as a property on the app instance
+// .set('property-name', property-value)
 app.set("db", db);
 
 app.listen(PORT, () => {

@@ -67,44 +67,35 @@ app.use(function validateBearerToken(req, res, next) {
   next();
 });
 
-///////////////////// ERROR HANDLER /////////////////////
-app.use(function errorHandler(error, req, res, next) {
-  let response;
-  if (NODE_ENV === "production") {
-    response = { error: { message: "server error" } };
-  } else {
-    console.error(error);
-    response = { message: error.message, error };
-  }
-  res.status(500).json(response);
+///////////////////// ROUTE HANDLERS /////////////////////
+app.get("/", (req, res) => {
+  res.send("Welcome!");
 });
 
-///////////////////// ROUTE HANDLERS /////////////////////
 app.get("/bookmarks", (req, res, next) => {
+  // `req.app.get('property-name) is how you access the property you
+  // set using the .set() method from Express
   const knexInstance = req.app.get("db");
 
   BookmarksService.getAllBookmarks(knexInstance)
     .then((bookmarks) => {
       res.json(bookmarks);
     })
+    // this will pass any errors to the error handling function below
     .catch(next);
 });
 
-app.get("/", (req, res) => {
-  res.send("Welcome!");
-});
+// app.get("/bookmarks/:id", (req, res) => {
+//   const { id } = req.params;
+//   const bookmark = bookmarks.find((b) => b.id == id);
 
-app.get("/bookmarks/:id", (req, res) => {
-  const { id } = req.params;
-  const bookmark = bookmarks.find((b) => b.id == id);
+//   if (!bookmark) {
+//     logger.error(`Bookmark with ID ${id} not found.`);
+//     return res.status(404).send("Card not found");
+//   }
 
-  if (!bookmark) {
-    logger.error(`Bookmark with ID ${id} not found.`);
-    return res.status(404).send("Card not found");
-  }
-
-  res.json(bookmark);
-});
+//   res.json(bookmark);
+// });
 
 // app.post("/bookmarks", (req, res) => {
 //   const { description, rating, title, url } = req.body;
@@ -140,33 +131,46 @@ app.get("/bookmarks/:id", (req, res) => {
 //   }
 // });
 
-app.post("/bookmarks", jsonParser, (req, res, next) => {
-  const { description, rating, title, url } = req.body;
-  const newBookmark = {
-    description,
-    id,
-    rating,
-    title,
-    url,
-  };
-  BookmarksService.insertBookmark(req.app.get("db"), newBookmark)
-    .then((article) => {
-      res.status(201).json(article);
-    })
-    .catch(next);
-});
+// app.post("/bookmarks", jsonParser, (req, res, next) => {
+//   const { description, rating, title, url } = req.body;
+//   const newBookmark = {
+//     description,
+//     id,
+//     rating,
+//     title,
+//     url,
+//   };
+//   BookmarksService.insertBookmark(req.app.get("db"), newBookmark)
+//     .then((article) => {
+//       res.status(201).json(article);
+//     })
+//     .catch(next);
+// });
 
-app.delete("/bookmarks/:id", (req, res) => {
-  const { id } = req.params;
-  const index = bookmarks.findIndex((b) => b.id === id);
+// app.delete("/bookmarks/:id", (req, res) => {
+//   const { id } = req.params;
+//   const index = bookmarks.findIndex((b) => b.id === id);
 
-  if (index === -1) {
-    return res.status(404).send("Bookmark not found");
+//   if (index === -1) {
+//     return res.status(404).send("Bookmark not found");
+//   }
+
+//   bookmarks.splice(index, 1);
+//   logger.info(`Bookmark with id ${id} deleted`);
+//   res.status(204).end();
+// });
+
+///////////////////// ERROR HANDLER /////////////////////
+// last middleware in pipeline
+app.use(function errorHandler(error, req, res, next) {
+  let response;
+  if (NODE_ENV === "production") {
+    response = { error: { message: "server error" } };
+  } else {
+    console.error(error);
+    response = { message: error.message, error };
   }
-
-  bookmarks.splice(index, 1);
-  logger.info(`Bookmark with id ${id} deleted`);
-  res.status(204).end();
+  res.status(500).json(response);
 });
 
 module.exports = app;
