@@ -56,6 +56,7 @@ app.use(express.json());
 ///////////////////// API KEY VALIDATION /////////////////////
 app.use(function validateBearerToken(req, res, next) {
   const apiToken = process.env.API_TOKEN;
+
   const authToken = req.get("Authorization");
 
   if (!authToken || authToken.split(" ")[1] !== apiToken) {
@@ -89,7 +90,7 @@ app.get("/bookmarks/:id", (req, res) => {
 
   if (!bookmark) {
     logger.error(`Bookmark with ID ${id} not found.`);
-    return res.status(404).send("Card not found");
+    return res.status(404).send("Bookmark not found");
   }
 
   res.json(bookmark);
@@ -121,7 +122,7 @@ app.post("/bookmarks", (req, res) => {
     };
     bookmarks.push(newBookmark);
 
-    logger.info(`Card with id ${id} created`);
+    logger.info(`Bookmark with id ${id} created`);
     res
       .status(201)
       .location(`http://localhost:8000/bookmarks/${id}`)
